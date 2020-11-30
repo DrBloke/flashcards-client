@@ -1,9 +1,13 @@
 module Main exposing (main)
 
 import Browser
+import Css exposing (..)
 import Html as Html exposing (Html, label)
 import Html.Attributes as Attributes
 import Html.Events as Events
+import Html.Styled as Styled
+import Html.Styled.Attributes exposing (css, href, src)
+import Html.Styled.Events exposing (onClick)
 
 
 type alias Model =
@@ -95,11 +99,12 @@ view model =
             ToolsViewConfig
                 model.cardSide
     in
-    Html.div [ Attributes.class "container" ]
+    Styled.div [ css [ containerStyle ] ]
         [ progressView progressViewConfig
         , cardView cardViewConfig
         , toolsView toolsViewConfig
         ]
+        |> Styled.toUnstyled
 
 
 type alias ProgressViewConfig =
@@ -109,24 +114,26 @@ type alias ProgressViewConfig =
     }
 
 
-progressView : ProgressViewConfig -> Html Msg
+progressView : ProgressViewConfig -> Styled.Html Msg
 progressView config =
     let
         remainingCards =
             config.remainingCards
                 |> List.length
                 |> String.fromInt
-                |> Html.text
+                |> (++) "Cards remaing:"
+                |> Styled.text
                 |> List.singleton
-                |> Html.span [ Attributes.class "remaining-cards" ]
+                |> Styled.span [ css [ remainingCardsStyle ] ]
 
         currentRound =
             (String.fromInt config.currentRound ++ "/" ++ String.fromInt config.totalRounds)
-                |> Html.text
+                |> (++) "Round:"
+                |> Styled.text
                 |> List.singleton
-                |> Html.span [ Attributes.class "rounds" ]
+                |> Styled.span [ css [ roundsStyle ] ]
     in
-    Html.div [ Attributes.class "progress" ]
+    Styled.div [ css [ progressStyle ] ]
         [ remainingCards
         , currentRound
         ]
@@ -138,7 +145,7 @@ type alias CardViewConfig =
     }
 
 
-cardView : CardViewConfig -> Html Msg
+cardView : CardViewConfig -> Styled.Html Msg
 cardView config =
     let
         cardContent =
@@ -152,36 +159,36 @@ cardView config =
     List.head config.remainingCards
         |> Maybe.withDefault ( "", "" )
         |> cardContent
-        |> Html.text
+        |> Styled.text
         |> List.singleton
-        |> Html.div [ Attributes.class "card-content" ]
+        |> Styled.div [ css [ cardStyle ] ]
 
 
 type alias ToolsViewConfig =
     { cardSide : Side }
 
 
-toolsView : ToolsViewConfig -> Html Msg
+toolsView : ToolsViewConfig -> Styled.Html Msg
 toolsView config =
     let
         buttons =
             case config.cardSide of
                 Front ->
-                    Html.div [ Attributes.class "flip" ]
+                    Styled.div [ css [ flipStyle ] ]
                         [ button "Flip" Flip ]
 
                 Back ->
-                    Html.div [ Attributes.class "mark" ]
+                    Styled.div [ css [ markStyle ] ]
                         [ button "Wrong" MarkWrong
                         , button "Correct" MarkCorrect
                         ]
 
         flipOrMark =
-            Html.div [ Attributes.class "flip-or-mark" ] [ buttons ]
+            Styled.div [ css [ flipOrMarkStyle ] ] [ buttons ]
     in
-    Html.div [ Attributes.class "toolbar" ]
+    Styled.div [ css [ toolbarStyle ] ]
         [ button "Home" GoHome
-        , Html.span [ Attributes.class "advance" ]
+        , Styled.span [ css [ advanceStyle ] ]
             [ button "Back" GoBack
             , button "Forward" GoForward
             ]
@@ -202,6 +209,65 @@ main =
 -- helper functions to be put in a library
 
 
-button : String -> Msg -> Html Msg
+button : String -> Msg -> Styled.Html Msg
 button label msg =
-    Html.button [ Attributes.type_ "button", Events.onClick msg ] [ Html.text label ]
+    Styled.button [ css [ buttonStyle ], onClick msg ] [ Styled.text label ]
+
+
+
+-- STYLES
+
+
+containerStyle : Style
+containerStyle =
+    color (rgb 255 0 0)
+
+
+cardStyle : Style
+cardStyle =
+    color (rgb 255 0 0)
+
+
+remainingCardsStyle : Style
+remainingCardsStyle =
+    color (rgb 0 0 0)
+
+
+roundsStyle : Style
+roundsStyle =
+    color (rgb 0 0 0)
+
+
+progressStyle : Style
+progressStyle =
+    color (rgb 0 0 0)
+
+
+flipStyle : Style
+flipStyle =
+    color (rgb 0 0 0)
+
+
+markStyle : Style
+markStyle =
+    color (rgb 0 0 0)
+
+
+flipOrMarkStyle : Style
+flipOrMarkStyle =
+    color (rgb 0 0 0)
+
+
+toolbarStyle : Style
+toolbarStyle =
+    color (rgb 0 0 0)
+
+
+advanceStyle : Style
+advanceStyle =
+    color (rgb 0 0 0)
+
+
+buttonStyle : Style
+buttonStyle =
+    color (rgb 0 0 0)
