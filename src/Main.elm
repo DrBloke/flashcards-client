@@ -1,13 +1,14 @@
 module Main exposing (main)
 
 import Browser
-import Css exposing (..)
+import Components exposing (..)
 import Html as Html exposing (Html, label)
 import Html.Attributes as Attributes
 import Html.Events as Events
 import Html.Styled as Styled
 import Html.Styled.Attributes exposing (css, href, src)
 import Html.Styled.Events exposing (onClick)
+import Style exposing (..)
 
 
 type alias Model =
@@ -72,16 +73,47 @@ update msg model =
             model
 
         Flip ->
-            model
+            { model | cardSide = Back }
 
         MarkWrong ->
-            model
+            case model.remainingCards of
+                x :: xs ->
+                    { model
+                        | remainingCards = xs ++ [ x ]
+                        , cardSide = Front
+                    }
+
+                _ ->
+                    model
 
         MarkCorrect ->
-            model
+            case model.remainingCards of
+                x :: [] ->
+                    -- TODO add a start and finish page
+                    { model
+                        | remainingCards = x :: model.removedCards |> List.reverse
+                        , cardSide = Front
+                        , currentRound =
+                            if model.currentRound < model.totalRounds then
+                                model.currentRound + 1
+
+                            else
+                                1
+                        , removedCards = []
+                    }
+
+                x :: xs ->
+                    { model
+                        | remainingCards = xs
+                        , cardSide = Front
+                        , removedCards = x :: model.removedCards
+                    }
+
+                _ ->
+                    model
 
 
-view : Model -> Html Msg
+view : Model -> Styled.Html Msg
 view model =
     let
         progressViewConfig =
@@ -104,7 +136,6 @@ view model =
         , cardView cardViewConfig
         , toolsView toolsViewConfig
         ]
-        |> Styled.toUnstyled
 
 
 type alias ProgressViewConfig =
@@ -124,14 +155,14 @@ progressView config =
                 |> (++) "Cards remaing:"
                 |> Styled.text
                 |> List.singleton
-                |> Styled.span [ css [ remainingCardsStyle ] ]
+                |> Styled.div [ css [ remainingCardsStyle ] ]
 
         currentRound =
             (String.fromInt config.currentRound ++ "/" ++ String.fromInt config.totalRounds)
                 |> (++) "Round:"
                 |> Styled.text
                 |> List.singleton
-                |> Styled.span [ css [ roundsStyle ] ]
+                |> Styled.div [ css [ roundsStyle ] ]
     in
     Styled.div [ css [ progressStyle ] ]
         [ remainingCards
@@ -174,8 +205,8 @@ toolsView config =
         buttons =
             case config.cardSide of
                 Front ->
-                    Styled.div [ css [ flipStyle ] ]
-                        [ button "Flip" Flip ]
+                    -- Styled.div [ css [ flipStyle ] ]
+                    buttonPlus buttonFlip "Flip" Flip
 
                 Back ->
                     Styled.div [ css [ markStyle ] ]
@@ -183,16 +214,16 @@ toolsView config =
                         , button "Correct" MarkCorrect
                         ]
 
-        flipOrMark =
-            Styled.div [ css [ flipOrMarkStyle ] ] [ buttons ]
+        --     flipOrMark =
+        --         Styled.div [ css [ flipOrMarkStyle ] ] [ buttons ]
     in
     Styled.div [ css [ toolbarStyle ] ]
         [ button "Home" GoHome
-        , Styled.span [ css [ advanceStyle ] ]
+        , Styled.div [ css [ advanceStyle ] ]
             [ button "Back" GoBack
             , button "Forward" GoForward
             ]
-        , flipOrMark
+        , buttons
         ]
 
 
@@ -200,74 +231,6 @@ main : Program () Model Msg
 main =
     Browser.sandbox
         { init = initialModel
-        , view = view
+        , view = view >> Styled.toUnstyled
         , update = update
         }
-
-
-
--- helper functions to be put in a library
-
-
-button : String -> Msg -> Styled.Html Msg
-button label msg =
-    Styled.button [ css [ buttonStyle ], onClick msg ] [ Styled.text label ]
-
-
-
--- STYLES
-
-
-containerStyle : Style
-containerStyle =
-    color (rgb 255 0 0)
-
-
-cardStyle : Style
-cardStyle =
-    color (rgb 255 0 0)
-
-
-remainingCardsStyle : Style
-remainingCardsStyle =
-    color (rgb 0 0 0)
-
-
-roundsStyle : Style
-roundsStyle =
-    color (rgb 0 0 0)
-
-
-progressStyle : Style
-progressStyle =
-    color (rgb 0 0 0)
-
-
-flipStyle : Style
-flipStyle =
-    color (rgb 0 0 0)
-
-
-markStyle : Style
-markStyle =
-    color (rgb 0 0 0)
-
-
-flipOrMarkStyle : Style
-flipOrMarkStyle =
-    color (rgb 0 0 0)
-
-
-toolbarStyle : Style
-toolbarStyle =
-    color (rgb 0 0 0)
-
-
-advanceStyle : Style
-advanceStyle =
-    color (rgb 0 0 0)
-
-
-buttonStyle : Style
-buttonStyle =
-    color (rgb 0 0 0)
